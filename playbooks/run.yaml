@@ -1,0 +1,7 @@
+---
+- hosts: localhost
+  tasks:
+    - name: get repo tag info
+      lego963.quay.tag_info:
+        repository: "{{ repository }}"
+      register: image_tags

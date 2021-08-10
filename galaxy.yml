@@ -1,0 +1,32 @@
+---
+namespace: lego963
+name: quay
+version: 0.0.1
+readme: README.rst
+authors:
+  - Rodion Gyrbu (@lego963)
+
+description: Roles for getting info about repository tags using Ansible.
+license:
+  - GPL-2.0-or-later
+tags:
+  - quay
+  - opentelekomcloud
+dependencies: {}
+repository: https://github.com/lego963/ansible-collection-quay
+documentation: https://github.com/lego963
+homepage: https://github.com/lego963
+issues: https://github.com/lego963/ansible-collection-quay/issues/tracker
+build_ignore:
+  - "*.tar.gz"
+  - build_artifact/
+  - ci/
+  - setup.cfg
+  - setup.py
+  - tools
+  - tox.ini
+  - .gitignore
+  - .gitreview
+  - .zuul.yaml
+  - .pytest_cache
+  - importer_result.json
