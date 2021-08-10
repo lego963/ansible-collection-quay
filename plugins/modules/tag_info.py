@@ -1,9 +1,8 @@
 #!/usr/bin/python
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from typing_extensions import Required
 from requests.api import request
-from plugins.module_utils.quay import QuayBase
+from ..module_utils.quay import QuayBase
 
 
 DOCUMENTATION = '''
@@ -22,9 +21,11 @@ options:
   only_active_tags:
     description: Filter to only active tags.
     type: bool
+    default: 'yes'
   page:
     description: Page index for the results.
     type: int
+    default: 1
   limit:
     description: Limit to the number of results to return per page.
     type: int
@@ -103,9 +104,10 @@ EXAMPLES = '''
 class TagsModule(QuayBase):
     argument_spec = dict(
         repository=dict(type='str', required=True),
-        page=dict(type='int', required=False),
-        limit=dict(type='int', required=False),
-        specific_tag=dict(type='str', required=False),
+        only_active_tags=dict(type='bool', default=False),
+        page=dict(type='int', defaul=1),
+        limit=dict(type='int'),
+        specific_tag=dict(type='str'),
     )
     module_kwargs = dict(
         supports_check_mode=True
@@ -114,14 +116,25 @@ class TagsModule(QuayBase):
     def run(self):
         changed = False
         repository = self.params['repository']
-        query = {
-            'only_active_tags': self.params['only_active_tags'],
-            'page': self.params['page'],
-            'limit': self.params['limit'],
-            'specificTag': self.params['specific_tag'],
-        }
+        query = {}
 
-        repo_tags = self.get_tags(repository, query=query)
+        only_active_tags = self.params['only_active_tags']
+        page = self.params['page']
+        query['only_active_tags'] = only_active_tags
+        query['page'] = page
+
+        limit = self.params['limit']
+        if limit:
+            query['limit'] = limit
+        specific_tag = self.params['specific_tag']
+        if specific_tag:
+            query['specificTag'] = specific_tag
+
+        self.exit(
+            query=query
+        )
+
+        repo_tags = self.get_tags(repository, query)+
         if repo_tags is None:
             self.fail_json(
                 msg=f'Cannot fetch repository tags for {repository}',
