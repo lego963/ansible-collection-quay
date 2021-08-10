@@ -134,7 +134,7 @@ class TagsModule(QuayBase):
             query=query
         )
 
-        repo_tags = self.get_tags(repository, query)+
+        repo_tags = self.get_tags(repository, query)
         if repo_tags is None:
             self.fail_json(
                 msg=f'Cannot fetch repository tags for {repository}',
