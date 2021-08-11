@@ -1,8 +1,13 @@
 #!/usr/bin/python
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
+
 from requests.api import request
-from ..module_utils.quay import QuayBase
+from ansible_collections.lego963.quay.plugins.module_utils.quay import QuayBase
 
 
 DOCUMENTATION = '''
@@ -104,10 +109,10 @@ EXAMPLES = '''
 class TagsModule(QuayBase):
     argument_spec = dict(
         repository=dict(type='str', required=True),
-        only_active_tags=dict(type='bool', default=False),
-        page=dict(type='int', defaul=1),
-        limit=dict(type='int'),
-        specific_tag=dict(type='str'),
+        only_active_tags=dict(type='bool', default=False, required=False),
+        page=dict(type='int', defaul=1, required=False),
+        limit=dict(type='int', required=False),
+        specific_tag=dict(type='str', required=False),
     )
     module_kwargs = dict(
         supports_check_mode=True
@@ -120,32 +125,31 @@ class TagsModule(QuayBase):
 
         only_active_tags = self.params['only_active_tags']
         page = self.params['page']
-        query['only_active_tags'] = only_active_tags
-        query['page'] = page
-
         limit = self.params['limit']
-        if limit:
-            query['limit'] = limit
         specific_tag = self.params['specific_tag']
+
+        if only_active_tags:
+            query.update({'onlyActiveTags': only_active_tags})
+        if page:
+            query.update({'page': page})
+        if limit:
+            query.update({'page': page})
         if specific_tag:
-            query['specificTag'] = specific_tag
+            query.update({'specificTag': specific_tag})
 
-        self.exit(
-            query=query
-        )
-
-        repo_tags = self.get_tags(repository, query)
-        if repo_tags is None:
+        tag_info = self.get_tags(repository, query)
+        if tag_info is None:
             self.fail_json(
                 msg=f'Cannot fetch repository tags for {repository}',
                 errors=self.errors)
-
+        if len(tag_info['tags']) == 0:
+            sorted_tags = []
+        else:
+            sorted_tags = sorted(tag_info['tags'], key=lambda item: item['start_ts'], reverse=True)
         if len(self.errors) == 0:
             self.exit_json(
                 changed=changed,
-                errors=self.errors,
-                quay_tags=repo_tags['tags']
-            )
+                quay_tags=sorted_tags)
         else:
             self.fail_json(
                 changed=changed,
@@ -159,5 +163,5 @@ def main():
     module()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

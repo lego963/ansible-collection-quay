@@ -23,7 +23,6 @@ def base_argument_spec(**kwargs):
 class QuayBase:
     argument_spec = {}
     module_kwargs = {}
-    _bp_templates = {}
 
     def __init__(self):
         self.ansible = AnsibleModule(
