@@ -2,7 +2,7 @@
 namespace: lego963
 name: quay
 version: 0.0.1
-readme: README.rst
+readme: README.md
 authors:
   - Rodion Gyrbu (@lego963)
 
