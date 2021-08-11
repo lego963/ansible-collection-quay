@@ -12,3 +12,4 @@ How to use it
 
    ansible-playbook playbooks/run.yaml \
      -e repository=REPOSITORY \
+     -e only_active_tags=true

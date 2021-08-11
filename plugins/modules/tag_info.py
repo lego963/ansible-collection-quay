@@ -6,12 +6,11 @@ from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
 
-from requests.api import request
 from ansible_collections.lego963.quay.plugins.module_utils.quay import QuayBase
 
 
 DOCUMENTATION = '''
-module: tags_info
+module: tag_info
 short_description: Query Quay Tags info.
 extends_documentation_fragment: lego963.quay.quay
 version_added: "0.0.1"
@@ -41,7 +40,7 @@ options:
 
 RETURN = '''
 quay_tags:
-  description:
+  description: Sorted quay tags list of repository.
   type: complex
   returned: success
   contains:
@@ -94,19 +93,19 @@ quay_tags:
 
 EXAMPLES = '''
 # Get all Quay Tags
-- lego963.quay.tags_info:
+- lego963.quay.tag_info:
     repository: "opentelekomcloud/apimon"
   register: quay_tags
 
 # Get only active Quay Tags
-- lego963.quay.tags_info:
+- lego963.quay.tag_info:
     repository: "opentelekomcloud/apimon"
     only_active_tags: true
   register: filtered_quay_tags
 '''
 
 
-class TagsModule(QuayBase):
+class TagModule(QuayBase):
     argument_spec = dict(
         repository=dict(type='str', required=True),
         only_active_tags=dict(type='bool', default=False, required=False),
@@ -137,11 +136,12 @@ class TagsModule(QuayBase):
         if specific_tag:
             query.update({'specificTag': specific_tag})
 
-        tag_info = self.get_tags(repository, query)
+        tag_info = self.get_tag_info(repository, query)
         if tag_info is None:
             self.fail_json(
                 msg=f'Cannot fetch repository tags for {repository}',
-                errors=self.errors)
+                errors=self.errors
+            )
         if len(tag_info['tags']) == 0:
             sorted_tags = []
         else:
@@ -149,7 +149,8 @@ class TagsModule(QuayBase):
         if len(self.errors) == 0:
             self.exit_json(
                 changed=changed,
-                quay_tags=sorted_tags)
+                quay_tags=sorted_tags
+            )
         else:
             self.fail_json(
                 changed=changed,
@@ -159,7 +160,7 @@ class TagsModule(QuayBase):
 
 
 def main():
-    module = TagsModule()
+    module = TagModule()
     module()
 
 

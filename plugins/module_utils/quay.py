@@ -69,7 +69,7 @@ class QuayBase:
         return requests.request(
             method, url, headers=headers, timeout=timeout, params=query, **kwargs)
 
-    def get_tags(self, repository, query):
+    def get_tag_info(self, repository, query):
         """Get Quay Tags"""
 
         rsp = self.request(
@@ -78,6 +78,6 @@ class QuayBase:
             query=query
         )
         if rsp.status_code not in [200]:
-            self.save_error(f"Cannot fetch repository {repository} tags")
+            self.save_error(f"Cannot fetch repository tags for {repository}")
 
         return rsp.json()

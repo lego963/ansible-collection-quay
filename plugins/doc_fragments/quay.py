@@ -18,11 +18,13 @@ options:
     description:
       - Filter to only active tags.
     type: bool
+    default: 'yes'
     required: False
   page:
     description:
       - Page index for the results.
     type: int
+    default: 1
     required: False
   limit:
     description:
