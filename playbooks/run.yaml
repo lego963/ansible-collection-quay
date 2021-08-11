@@ -4,4 +4,5 @@
     - name: get repo tag info
       lego963.quay.tag_info:
         repository: "{{ repository }}"
+        only_active_tags: "{{ only_active_tags }}"
       register: image_tags

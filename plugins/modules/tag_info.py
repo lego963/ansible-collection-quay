@@ -1,13 +1,16 @@
 #!/usr/bin/python
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
-from typing_extensions import Required
-from requests.api import request
-from plugins.module_utils.quay import QuayBase
+
+from __future__ import (absolute_import, division, print_function)
+__metaclass__ = type
+
+
+from ansible_collections.lego963.quay.plugins.module_utils.quay import QuayBase
 
 
 DOCUMENTATION = '''
-module: tags_info
+module: tag_info
 short_description: Query Quay Tags info.
 extends_documentation_fragment: lego963.quay.quay
 version_added: "0.0.1"
@@ -22,9 +25,11 @@ options:
   only_active_tags:
     description: Filter to only active tags.
     type: bool
+    default: 'yes'
   page:
     description: Page index for the results.
     type: int
+    default: 1
   limit:
     description: Limit to the number of results to return per page.
     type: int
@@ -35,7 +40,7 @@ options:
 
 RETURN = '''
 quay_tags:
-  description:
+  description: Sorted quay tag list of the repository.
   type: complex
   returned: success
   contains:
@@ -88,22 +93,23 @@ quay_tags:
 
 EXAMPLES = '''
 # Get all Quay Tags
-- lego963.quay.tags_info:
+- lego963.quay.tag_info:
     repository: "opentelekomcloud/apimon"
   register: quay_tags
 
 # Get only active Quay Tags
-- lego963.quay.tags_info:
+- lego963.quay.tag_info:
     repository: "opentelekomcloud/apimon"
     only_active_tags: true
   register: filtered_quay_tags
 '''
 
 
-class TagsModule(QuayBase):
+class TagModule(QuayBase):
     argument_spec = dict(
         repository=dict(type='str', required=True),
-        page=dict(type='int', required=False),
+        only_active_tags=dict(type='bool', default=False, required=False),
+        page=dict(type='int', defaul=1, required=False),
         limit=dict(type='int', required=False),
         specific_tag=dict(type='str', required=False),
     )
@@ -114,24 +120,36 @@ class TagsModule(QuayBase):
     def run(self):
         changed = False
         repository = self.params['repository']
-        query = {
-            'only_active_tags': self.params['only_active_tags'],
-            'page': self.params['page'],
-            'limit': self.params['limit'],
-            'specificTag': self.params['specific_tag'],
-        }
+        query = {}
 
-        repo_tags = self.get_tags(repository, query=query)
-        if repo_tags is None:
+        only_active_tags = self.params['only_active_tags']
+        page = self.params['page']
+        limit = self.params['limit']
+        specific_tag = self.params['specific_tag']
+
+        if only_active_tags:
+            query.update({'onlyActiveTags': only_active_tags})
+        if page:
+            query.update({'page': page})
+        if limit:
+            query.update({'page': page})
+        if specific_tag:
+            query.update({'specificTag': specific_tag})
+
+        tag_info = self.get_tag_info(repository, query)
+        if tag_info is None:
             self.fail_json(
                 msg=f'Cannot fetch repository tags for {repository}',
-                errors=self.errors)
-
+                errors=self.errors
+            )
+        if len(tag_info['tags']) == 0:
+            sorted_tags = []
+        else:
+            sorted_tags = sorted(tag_info['tags'], key=lambda item: item['start_ts'], reverse=True)
         if len(self.errors) == 0:
             self.exit_json(
                 changed=changed,
-                errors=self.errors,
-                quay_tags=repo_tags['tags']
+                quay_tags=sorted_tags
             )
         else:
             self.fail_json(
@@ -142,9 +160,9 @@ class TagsModule(QuayBase):
 
 
 def main():
-    module = TagsModule()
+    module = TagModule()
     module()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
