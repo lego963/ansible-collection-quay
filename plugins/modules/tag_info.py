@@ -40,7 +40,7 @@ options:
 
 RETURN = '''
 quay_tags:
-  description: Sorted quay tags list of repository.
+  description: Sorted quay tag list of the repository.
   type: complex
   returned: success
   contains:
